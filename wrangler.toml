@@ -1,0 +1,11 @@
+name = "stock-journal"
+compatibility_date = "2026-06-11"
+pages_build_output_dir = "."
+
+# Create the D1 database first, then uncomment this block and paste the real UUID.
+# Keep the binding name as DB because functions/api/state.js reads env.DB.
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "stock-journal"
+# database_id = "00000000-0000-0000-0000-000000000000"

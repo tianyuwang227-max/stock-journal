@@ -1,0 +1,13 @@
+{
+  "name": "stock-journal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "preview": "node dev-server.mjs",
+    "check": "node --check script.js && node --check dev-server.mjs && node --check functions/api/state.js && node --check functions/api/health.js && node --check scripts/smoke-local-api.mjs",
+    "smoke": "node scripts/smoke-local-api.mjs",
+    "qa": "npm run check && npm run smoke"
+  }
+}

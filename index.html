@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A 股研究手账</title>
+    <link rel="stylesheet" href="style.css?v=20260613-checklist" />
+  </head>
+  <body>
+    <canvas id="particleCanvas" aria-hidden="true"></canvas>
+
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">↗</span>
+          <div>
+            <strong>A 股研究手账</strong>
+            <small>Stock Journal</small>
+          </div>
+        </div>
+
+        <nav class="sheet-nav" aria-label="工作表导航">
+          <button class="nav-item active" data-sheet="overview" aria-current="page" title="打开总览">
+            <span>01</span>
+            总览
+          </button>
+          <button class="nav-item" data-sheet="market" title="打开行情大屏">
+            <span>02</span>
+            行情大屏
+          </button>
+          <button class="nav-item" data-sheet="research" title="打开公司研究">
+            <span>03</span>
+            公司研究
+          </button>
+          <button class="nav-item" data-sheet="decision" title="打开反思判断">
+            <span>04</span>
+            反思判断
+          </button>
+          <button class="nav-item" data-sheet="plan" title="打开每周计划">
+            <span>05</span>
+            每周计划
+          </button>
+          <button class="nav-item" data-sheet="checkin" title="打开打卡本">
+            <span>06</span>
+            打卡本
+          </button>
+        </nav>
+
+        <div class="sidebar-card">
+          <small>动画风格</small>
+          <strong>打卡奖励 + 像素风</strong>
+          <div class="mini-pixels">
+            <i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Personal A-share learning system</p>
+            <h1 id="sheetTitle">总览</h1>
+          </div>
+          <div class="top-actions">
+            <span class="sync-pill" id="storageMode">本地模式</span>
+            <span class="save-pill" id="saveStatus">未保存</span>
+            <button class="ghost-button" id="exportButton" type="button" title="导出 JSON 备份">导出</button>
+            <button class="ghost-button" id="exportMarkdownButton" type="button" title="导出 Markdown 复盘档案">导出MD</button>
+            <button class="ghost-button" id="importButton" type="button" title="导入 JSON 备份">导入</button>
+            <button class="ghost-button" id="seedButton" type="button" title="恢复内置示例数据">填充示例</button>
+            <button class="primary-button" id="saveButton" type="button" title="保存当前所有记录，快捷键 Cmd/Ctrl + S">保存</button>
+          </div>
+        </header>
+
+        <section class="sheet active" id="overview">
+          <div class="dashboard-grid overview-grid">
+            <article class="panel hero-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Weekly Review</p>
+                  <h2>本周复盘完成情况</h2>
+                </div>
+                <span class="status-badge">向上积累</span>
+              </div>
+              <div class="review-meter">
+                <div>
+                  <strong id="weeklyDone">0 / 0</strong>
+                  <span>任务完成</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="weeklyProgress"></div>
+                </div>
+                <b id="weeklyRate">0%</b>
+              </div>
+              <div class="upward-chart" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </article>
+
+            <article class="panel calendar-panel">
+              <div class="panel-head">
+                <h2>本周复盘日历</h2>
+                <span class="hint">点一天继续写</span>
+              </div>
+              <div class="week-calendar" id="weekCalendar"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <h2>最近研究的公司</h2>
+                <button class="text-button" data-jump="research" type="button" title="打开公司研究">进入研究</button>
+              </div>
+              <div class="card-list" id="recentCompanies"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <h2>重点观察股票</h2>
+                <button class="text-button" data-jump="decision" type="button" title="打开反思判断">写判断</button>
+              </div>
+              <div class="watch-list" id="watchStocks"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <h2>待复盘判断</h2>
+                <button class="text-button" data-jump="decision" type="button" title="打开待复盘判断">去复盘</button>
+              </div>
+              <div class="review-list" id="dueReviews"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <h2>研究阶段</h2>
+                <span class="hint">公司卡片分布</span>
+              </div>
+              <div class="stage-list" id="stageList"></div>
+            </article>
+
+            <aside class="panel side-panel">
+              <h2>今日快速记录</h2>
+              <textarea id="quickNote" placeholder="今天市场最值得记录的一件事..."></textarea>
+              <div class="today-box">
+                <div class="panel-head compact">
+                  <h3>今日任务</h3>
+                  <span class="hint" id="todayLabel">今天</span>
+                </div>
+                <div class="today-actions" id="todayActions"></div>
+              </div>
+              <div class="side-metric">
+                <span>连续打卡</span>
+                <strong id="streakCount">0 天 ↑</strong>
+              </div>
+              <div class="pixel-badge" id="pixelBadge">✓</div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="sheet" id="market">
+          <div class="market-layout">
+            <article class="panel market-hero">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Market Screen</p>
+                  <h2>行情大屏</h2>
+                </div>
+                <span class="market-state">市场状态：手动观察</span>
+              </div>
+              <div class="index-grid" id="indexGrid"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head">
+                <h2>热门板块</h2>
+                <span class="hint">手动记录热度</span>
+              </div>
+              <div class="sector-grid" id="sectorGrid"></div>
+            </article>
+
+            <article class="panel market-pulse-panel">
+              <div class="panel-head">
+                <h2>市场节奏</h2>
+                <span class="hint">自己的盘感记录</span>
+              </div>
+              <div class="pulse-grid">
+                <div class="pulse-orb">
+                  <span id="pulseValue">42</span>
+                  <small>情绪分</small>
+                </div>
+                <label>
+                  市场情绪
+                  <input id="marketMood" placeholder="例如：震荡观察" />
+                </label>
+                <label>
+                  最强方向
+                  <input id="strongestSector" placeholder="例如：半导体" />
+                </label>
+                <label>
+                  最弱方向
+                  <input id="weakestSector" placeholder="例如：医药" />
+                </label>
+                <label>
+                  量能状态
+                  <input id="volumeSignal" placeholder="例如：缩量 / 放量" />
+                </label>
+                <label>
+                  情绪分
+                  <input id="marketStrength" type="range" min="0" max="100" />
+                </label>
+              </div>
+            </article>
+
+            <article class="panel wide">
+              <div class="panel-head">
+                <h2>重点观察股票行情</h2>
+                <button class="text-button" id="addMarketRow" type="button" title="新增一条观察股票行情">新增</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>股票</th>
+                      <th>状态</th>
+                      <th>涨跌</th>
+                      <th>触发条件</th>
+                      <th>风险</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="marketRows"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="panel">
+              <h2>今日市场笔记</h2>
+              <textarea id="marketNote" placeholder="今天指数、板块、情绪有什么变化？"></textarea>
+            </article>
+
+            <article class="panel">
+              <h2>今日问题</h2>
+              <textarea id="marketQuestion" placeholder="今天市场让我想继续研究的问题是什么？"></textarea>
+            </article>
+          </div>
+        </section>
+
+        <section class="sheet" id="research">
+          <div class="split-layout">
+            <aside class="panel list-panel">
+              <div class="panel-head">
+                <h2>公司列表</h2>
+                <button class="icon-button" id="addCompany" type="button" aria-label="新增公司" title="新增公司">+</button>
+              </div>
+              <input class="filter-input" id="companySearch" placeholder="搜索名称 / 代码 / 行业 / 阶段" />
+              <div class="company-list" id="companyList"></div>
+            </aside>
+
+            <article class="panel editor-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Company Research</p>
+                  <h2>公司研究卡</h2>
+                </div>
+                <div class="inline-actions">
+                  <button class="text-button" id="draftDecisionFromCompany" type="button" title="把当前公司研究带入反思判断草稿">带入反思判断</button>
+                  <button class="danger-button" id="deleteCompany" type="button" title="删除当前公司研究卡">删除公司</button>
+                </div>
+              </div>
+              <div class="research-score">
+                <span>研究完成度</span>
+                <div class="progress-track">
+                  <div class="progress-fill" id="researchProgress"></div>
+                </div>
+                <strong id="researchRate">0%</strong>
+              </div>
+              <div class="form-row">
+                <label>
+                  股票名称
+                  <input id="companyName" placeholder="例如：宁德时代" />
+                </label>
+                <label>
+                  股票代码
+                  <input id="companyCode" placeholder="例如：300750" />
+                </label>
+                <label>
+                  行业
+                  <input id="companyIndustry" placeholder="例如：动力电池" />
+                </label>
+                <label>
+                  研究阶段
+                  <input id="companyStage" placeholder="刚开始 / 研究中 / 已形成判断" />
+                </label>
+              </div>
+
+              <div class="accordion-list" id="researchFields"></div>
+
+              <div class="source-box">
+                <div class="panel-head compact">
+                  <h3>研究问题池</h3>
+                  <span class="hint">点一下追加到自定义问题</span>
+                </div>
+                <div class="prompt-bank" id="researchPromptBank"></div>
+              </div>
+
+              <div class="source-box">
+                <h3>资料来源</h3>
+                <textarea id="companySources" placeholder="公告、财报、研报、新闻、视频或网页链接..."></textarea>
+              </div>
+
+              <div class="source-box">
+                <div class="panel-head compact">
+                  <h3>自定义问题</h3>
+                  <button class="text-button" id="addQuestion" type="button" title="添加一个自定义研究问题">添加问题</button>
+                </div>
+                <div id="customQuestions"></div>
+              </div>
+
+              <div class="source-box">
+                <div class="panel-head compact">
+                  <h3>研究报告</h3>
+                  <div class="inline-actions">
+                    <button class="ghost-button small" id="copyCompanyReport" type="button" title="复制当前研究报告">复制报告</button>
+                    <button class="text-button" id="generateCompanyReport" type="button" title="根据公司研究卡生成结构化报告">生成报告</button>
+                  </div>
+                </div>
+                <textarea id="companyReport" placeholder="点击生成报告后，会把公司研究内容整理成一份结构化摘要。"></textarea>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="sheet" id="decision">
+          <div class="decision-layout">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Reflection</p>
+                  <h2>反思判断</h2>
+                </div>
+                <div class="inline-actions">
+                  <button class="ghost-button small" id="clearDecision" type="button" title="清空当前判断草稿">清空</button>
+                  <button class="text-button" id="newDecision" type="button" title="保存当前反思判断">保存判断</button>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label>
+                  股票
+                  <input id="decisionStock" placeholder="股票名称 / 代码" />
+                </label>
+                <label>
+                  信心分
+                  <input id="confidence" type="range" min="1" max="5" value="3" />
+                </label>
+                <label>
+                  下次复盘日期
+                  <input id="reviewDate" type="date" />
+                </label>
+              </div>
+
+              <div class="segment" id="decisionSegment">
+                <button class="active" data-value="观察" type="button" title="设置判断状态为观察">观察</button>
+                <button data-value="可以买" type="button" title="设置判断状态为可以买">可以买</button>
+                <button data-value="不买" type="button" title="设置判断状态为不买">不买</button>
+                <button data-value="放弃" type="button" title="设置判断状态为放弃">放弃</button>
+              </div>
+
+              <div class="decision-radar">
+                <div class="radar-score">
+                  <strong id="decisionQualityScore">0</strong>
+                  <span>判断完整度</span>
+                </div>
+                <div class="radar-main">
+                  <div class="panel-head compact">
+                    <h3 id="decisionQualityTitle">先补证据</h3>
+                    <span class="hint" id="decisionQualityHint">不是买卖建议，只检查记录是否完整。</span>
+                  </div>
+                  <div class="quality-bars" id="decisionQualityBars"></div>
+                  <div class="gap-list" id="decisionGaps"></div>
+                </div>
+              </div>
+
+              <div class="decision-checklist">
+                <div class="panel-head compact">
+                  <h3>买入前检查</h3>
+                  <span class="hint" id="decisionChecklistRate">0 / 6</span>
+                </div>
+                <div class="checklist-grid" id="decisionChecklist"></div>
+              </div>
+
+              <div class="decision-checklist compact-box">
+                <div class="panel-head compact">
+                  <h3>复盘提示</h3>
+                  <span class="hint">点一下填入判断草稿</span>
+                </div>
+                <div class="prompt-bank" id="decisionPromptBank"></div>
+              </div>
+
+              <div class="decision-fields">
+                <label>为什么<textarea id="decisionReason"></textarea></label>
+                <label>关键证据<textarea id="decisionEvidence" placeholder="财报、公告、行业数据、价格行为、新闻或自己的观察。"></textarea></label>
+                <label>我不确定什么<textarea id="decisionDoubt"></textarea></label>
+                <label>最大风险<textarea id="decisionRisk"></textarea></label>
+                <label>买入条件<textarea id="buyCondition"></textarea></label>
+                <label>放弃条件<textarea id="dropCondition"></textarea></label>
+                <label>之后验证结果<textarea id="resultReview" placeholder="过一段时间回头看：当时判断对了吗？错在哪里？"></textarea></label>
+              </div>
+            </article>
+
+            <aside class="panel">
+              <div class="panel-head compact">
+                <h2>判断记录</h2>
+                <span class="hint" id="decisionCount">0 条</span>
+              </div>
+              <input class="filter-input" id="decisionSearch" placeholder="搜索股票 / 理由 / 风险 / 证据" />
+              <div class="filter-segment" id="decisionFilter">
+                <button class="active" data-decision-filter="全部" type="button" title="显示全部判断记录">全部</button>
+                <button data-decision-filter="观察" type="button" title="只显示观察判断">观察</button>
+                <button data-decision-filter="可以买" type="button" title="只显示可以买判断">可以买</button>
+                <button data-decision-filter="不买" type="button" title="只显示不买判断">不买</button>
+                <button data-decision-filter="放弃" type="button" title="只显示放弃判断">放弃</button>
+              </div>
+              <div class="decision-list" id="decisionList"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="sheet" id="plan">
+          <div class="plan-layout">
+            <article class="panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Weekly Plan</p>
+                  <h2>本周计划</h2>
+                </div>
+                <div class="inline-actions">
+                  <button class="ghost-button small" id="archiveWeek" type="button" title="归档当前周报和任务快照">归档本周</button>
+                  <button class="ghost-button small" id="startNewWeek" type="button" title="归档当前周并开启新一周">开启新周</button>
+                  <button class="text-button" id="addTask" type="button" title="新增每周打卡任务">新增任务</button>
+                </div>
+              </div>
+              <div class="form-row">
+                <label>
+                  周标题
+                  <input id="weekTitle" placeholder="例如：第 24 周，建立研究节奏" />
+                </label>
+                <label>
+                  本周主目标
+                  <input id="weekGoal" placeholder="例如：研究 2 家公司，完成 5 天记录" />
+                </label>
+              </div>
+              <div class="task-list" id="taskList"></div>
+            </article>
+
+            <aside class="panel">
+              <div class="panel-head compact">
+                <h2>本周反思</h2>
+                <div class="inline-actions">
+                  <button class="ghost-button small" id="copyWeekSummary" type="button" title="复制本周复盘摘要">复制周报</button>
+                  <button class="text-button" id="generateWeekSummary" type="button" title="根据本周任务、研究、判断和日记生成摘要">生成摘要</button>
+                </div>
+              </div>
+              <textarea id="weekReflection" placeholder="这一周哪些判断变清楚了？哪些行为需要调整？"></textarea>
+              <div class="source-box">
+                <h3>本周复盘摘要</h3>
+                <textarea id="weekSummary" placeholder="点击生成摘要后，这里会自动汇总本周任务、研究、判断和日记。"></textarea>
+              </div>
+              <div class="source-box">
+                <div class="panel-head compact">
+                  <h3>历史周报</h3>
+                  <span class="hint" id="weeklyHistoryCount">0 条</span>
+                </div>
+                <div class="weekly-history" id="weeklyHistory"></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="sheet" id="checkin">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Check-in Book</p>
+                <h2>打卡本</h2>
+              </div>
+              <span class="status-badge">点击格子完成</span>
+            </div>
+            <div class="checkin-table" id="checkinTable"></div>
+          </div>
+
+          <div class="journal-grid">
+            <article class="panel">
+              <div class="panel-head compact">
+                <h2>每日生活日记</h2>
+                <span class="hint" id="journalPrompt">周一复盘</span>
+              </div>
+              <div class="journal-tabs" id="journalDayTabs"></div>
+              <div class="prompt-bank journal-prompt-bank" id="lifePromptBank"></div>
+              <textarea id="lifeJournal" placeholder="像写日记一样记录今天的状态、情绪、生活、学习。"></textarea>
+            </article>
+            <article class="panel daily-review-panel">
+              <div class="panel-head compact">
+                <h2>每日复盘卡</h2>
+                <button class="text-button" id="generateDailyReview" type="button" title="生成当天复盘摘要">生成复盘</button>
+              </div>
+              <div class="daily-review-fields">
+                <label>今天看懂了什么<textarea id="dailyMarketRead" data-daily-review="marketRead" placeholder="例如：今天市场真正强的是哪条线？为什么？"></textarea></label>
+                <label>判断反思<textarea id="dailyDecisionReview" data-daily-review="decisionReview" placeholder="今天哪个判断更清楚了？哪个判断需要推翻？"></textarea></label>
+                <label>错误 / 偏差<textarea id="dailyMistake" data-daily-review="mistake" placeholder="今天哪里冲动、偷懒、想当然或证据不足？"></textarea></label>
+                <label>明日行动<textarea id="dailyTomorrow" data-daily-review="tomorrow" placeholder="明天只做哪一个最小动作？"></textarea></label>
+              </div>
+              <div class="source-box">
+                <h3>当天复盘摘要</h3>
+                <textarea id="dailySummary" data-daily-review="summary" placeholder="点击生成复盘后，会把今天的生活日记和复盘卡整理成摘要。"></textarea>
+              </div>
+            </article>
+            <article class="panel reward-panel">
+              <h2>像素奖励</h2>
+              <div class="reward-stage" id="rewardStage">
+                <span></span><span></span><span></span>
+              </div>
+              <p>连续完成会点亮这里的小徽章。</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast">已保存</div>
+    <input id="importFile" type="file" accept="application/json" hidden />
+
+    <script src="script.js?v=20260613-checklist"></script>
+  </body>
+</html>
