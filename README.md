@@ -20,6 +20,8 @@ http://127.0.0.1:4176
 
 本地预览会模拟 `/api/state`，数据会写到 `.local-state.json`，顶部显示 `本地接口`。如果接口不可用，前端会退回浏览器 `localStorage`。`dev-server.mjs` 会关闭缓存，适合反复调试界面。本地和部署环境都提供 `/api/health`，用于快速确认接口与存储模式。
 
+行情大屏的「刷新行情」会请求 `/api/market`，从东方财富行情接口获取指数、行业/概念板块和领涨观察股，再写入当前手账。
+
 顶部的「导出 / 导入」可以把当前本地数据备份成 JSON，或者恢复之前的 JSON 备份。「导出MD」会生成一份适合放进笔记软件的 Markdown 复盘档案。
 
 公司研究报告和本周复盘摘要支持一键复制，方便粘贴到外部笔记。
@@ -73,6 +75,8 @@ SMOKE_URL=http://127.0.0.1:4178 npm run smoke
 - `migrations/0001_initial.sql`：第一版 D1 初始化迁移
 - `functions/api/state.js`：Cloudflare Pages Function，绑定名使用 `DB`
 - `functions/api/health.js`：Cloudflare Pages 健康检查接口，用来确认 D1 是否绑定
+- `functions/api/market.js`：Cloudflare Pages 行情接口，用来刷新行情大屏
+- `lib/market-data.mjs`：本地和 Pages 共用的行情数据整理逻辑
 - `wrangler.toml`：D1 绑定模板，创建真实 D1 数据库后再填入 `database_id`
 
 第一版前端会先请求 `/api/state`。如果接口不可用、D1 未绑定或保存失败，会自动退回本地模式。`/api/state` 支持 `GET`、`POST` 和 `OPTIONS`，错误会返回 JSON，并且只接受对象型手账状态。手账数据会带 `schemaVersion`，导入 JSON 时会先做基础结构校验。

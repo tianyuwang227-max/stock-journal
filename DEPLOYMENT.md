@@ -1,6 +1,6 @@
 # Cloudflare Pages + D1 部署清单
 
-这份清单用于把 A 股研究手账从本地预览切到 Cloudflare Pages + D1。前端会自动请求 `/api/state`，只要 D1 绑定名是 `DB`，部署后顶部会显示 `D1 模式`。
+这份清单用于把 A 股研究手账从本地预览切到 Cloudflare Pages + D1。前端会自动请求 `/api/state`，只要 D1 绑定名是 `DB`，部署后顶部会显示 `D1 模式`。行情大屏会通过 `/api/market` 刷新东方财富行情快照。
 
 ## 1. 创建 D1 数据库
 
@@ -51,6 +51,7 @@ market_watch
 
 ```text
 https://你的域名/api/health
+https://你的域名/api/market
 ```
 
 正常 D1 绑定结果应包含：

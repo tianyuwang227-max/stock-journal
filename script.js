@@ -1,5 +1,6 @@
 const STORAGE_KEY = "stock-journal-v1";
 const API_URL = "/api/state";
+const MARKET_API_URL = "/api/market";
 const CURRENT_STATE_VERSION = 2;
 const DAYS = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
 
@@ -74,6 +75,8 @@ const defaultState = {
   quickNote: "",
   marketNote: "2026-06-15 快照：A 股放量普涨，创业板指领涨。盘面主线集中在电子元件、CPO/光通信、PCB、激光设备和有色小金属；煤炭、啤酒、熟食等方向偏弱。沪深两市指数成交额约 3.03 万亿元，情绪明显升温，但高位题材需要注意追涨风险。",
   marketQuestion: "今天上涨是业绩/订单驱动，还是资金集中抱团电子科技方向？明天重点观察 CPO、PCB、被动元件能否继续放量承接。",
+  marketSnapshotAt: "2026-06-15",
+  marketSource: "东方财富",
   lifeJournal: "",
   activeJournalDay: 0,
   dailyJournals: ["", "", "", "", "", "", ""],
@@ -287,6 +290,8 @@ function isPlainObject(value) {
 
 function normalizeState() {
   state.schemaVersion = CURRENT_STATE_VERSION;
+  state.marketSnapshotAt = state.marketSnapshotAt || "";
+  state.marketSource = state.marketSource || "";
   state.dailyJournals = Array.isArray(state.dailyJournals) ? state.dailyJournals : Array(7).fill("");
   while (state.dailyJournals.length < 7) state.dailyJournals.push("");
   state.dailyJournals = state.dailyJournals.slice(0, 7);
@@ -425,6 +430,19 @@ function formatSaveTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "刚刚";
   return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatSnapshotTime(value) {
+  if (!value) return "手动观察";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function switchSheet(id) {
@@ -634,6 +652,10 @@ function renderOverview() {
 }
 
 function renderMarket() {
+  const snapshotLabel = state.marketSnapshotAt
+    ? `${state.marketSource || "行情"} · ${formatSnapshotTime(state.marketSnapshotAt)}`
+    : "市场状态：手动观察";
+  $("#marketSnapshotLabel").textContent = snapshotLabel;
   $("#marketNote").value = state.marketNote || "";
   $("#marketQuestion").value = state.marketQuestion || "";
   $("#marketMood").value = state.marketPulse?.mood || "";
@@ -1300,6 +1322,42 @@ function addMarketRow() {
   markDirty();
 }
 
+async function refreshMarketData() {
+  collectFormState();
+  const button = $("#refreshMarketData");
+  if (button) {
+    button.disabled = true;
+    button.textContent = "刷新中";
+  }
+
+  try {
+    const response = await fetch(MARKET_API_URL, { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error("Market refresh failed");
+    applyMarketSnapshot(await response.json());
+    render();
+    await persistState(false, true);
+    showToastMessage("行情已更新", "saved");
+  } catch {
+    showToastMessage("行情刷新失败", "error");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "刷新行情";
+    }
+  }
+}
+
+function applyMarketSnapshot(snapshot = {}) {
+  state.marketSnapshotAt = snapshot.tradeDate || snapshot.updatedAt || new Date().toISOString();
+  state.marketSource = snapshot.source || "东方财富";
+  state.marketPulse = { ...clone(defaultState.marketPulse), ...(snapshot.marketPulse || {}) };
+  state.indexes = Array.isArray(snapshot.indexes) ? snapshot.indexes : state.indexes;
+  state.sectors = Array.isArray(snapshot.sectors) ? snapshot.sectors : state.sectors;
+  state.marketRows = Array.isArray(snapshot.marketRows) ? snapshot.marketRows : state.marketRows;
+  state.marketNote = snapshot.marketNote || state.marketNote;
+  state.marketQuestion = snapshot.marketQuestion || state.marketQuestion;
+}
+
 async function generateWeekSummary() {
   collectFormState();
   const stats = taskStats();
@@ -1672,6 +1730,7 @@ function bindEvents() {
   $("#archiveWeek").addEventListener("click", archiveCurrentWeek);
   $("#startNewWeek").addEventListener("click", startNewWeek);
   $("#addMarketRow").addEventListener("click", addMarketRow);
+  $("#refreshMarketData").addEventListener("click", refreshMarketData);
   $("#newDecision").addEventListener("click", saveDecision);
   $("#clearDecision").addEventListener("click", () => clearDecisionDraft());
 

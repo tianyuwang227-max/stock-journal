@@ -1,11 +1,15 @@
 import { createServer } from "node:http";
+import { exec } from "node:child_process";
 import { readFile, stat, writeFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
+import { promisify } from "node:util";
+import { fetchMarketSnapshot } from "./lib/market-data.mjs";
 
 const root = process.cwd();
 const port = Number.parseInt(process.env.PORT || "4176", 10);
 const host = process.env.HOST || "127.0.0.1";
 const stateFile = join(root, ".local-state.json");
+const execAsync = promisify(exec);
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -37,6 +41,11 @@ const server = createServer(async (request, response) => {
 
     if (pathname === "/api/state") {
       await handleStateApi(request, response);
+      return;
+    }
+
+    if (pathname === "/api/market") {
+      await handleMarketApi(request, response);
       return;
     }
 
@@ -105,6 +114,41 @@ async function handleStateApi(request, response) {
   }
 
   sendJson(response, { error: "Method not allowed" }, 405);
+}
+
+async function handleMarketApi(request, response) {
+  if (request.method === "OPTIONS") {
+    sendJson(response, { ok: true });
+    return;
+  }
+
+  if (request.method !== "GET") {
+    sendJson(response, { error: "Method not allowed" }, 405);
+    return;
+  }
+
+  try {
+    sendJson(response, await fetchMarketSnapshot(curlFetch));
+  } catch {
+    sendJson(response, { error: "Failed to fetch market data" }, 502);
+  }
+}
+
+async function curlFetch(url) {
+  const { stdout } = await execAsync(`curl -L -sS --max-time 12 ${shellQuote(String(url))}`, {
+    maxBuffer: 2_000_000
+  });
+
+  return {
+    ok: true,
+    status: 200,
+    json: async () => JSON.parse(stdout),
+    text: async () => stdout
+  };
+}
+
+function shellQuote(value) {
+  return `'${value.replaceAll("'", "'\\''")}'`;
 }
 
 function isPlainObject(value) {
