@@ -292,6 +292,7 @@ function normalizeState() {
   state.schemaVersion = CURRENT_STATE_VERSION;
   state.marketSnapshotAt = state.marketSnapshotAt || "";
   state.marketSource = state.marketSource || "";
+  upgradeStaleMarketSnapshot();
   state.dailyJournals = Array.isArray(state.dailyJournals) ? state.dailyJournals : Array(7).fill("");
   while (state.dailyJournals.length < 7) state.dailyJournals.push("");
   state.dailyJournals = state.dailyJournals.slice(0, 7);
@@ -321,6 +322,26 @@ function normalizeState() {
     ...task,
     checks: Array.isArray(task.checks) ? [...task.checks, ...Array(7).fill(false)].slice(0, 7) : Array(7).fill(false)
   }));
+}
+
+function upgradeStaleMarketSnapshot() {
+  const marketRows = Array.isArray(state.marketRows) ? state.marketRows : [];
+  const indexes = Array.isArray(state.indexes) ? state.indexes : [];
+  const sectors = Array.isArray(state.sectors) ? state.sectors : [];
+  const hasOldManualIndexes = indexes.some((item) => ["手动记录", "待观察"].includes(item?.value));
+  const hasOldDefaultRows = marketRows.some((row) => ["宁德时代", "比亚迪"].includes(String(row?.stock || "")));
+  const hasOldDefaultSectors = sectors.some((sector) => ["半导体", "新能源", "消费", "医药"].includes(String(sector?.name || "")));
+  const missingSnapshot = !state.marketSnapshotAt || !state.marketSource;
+  if (!missingSnapshot && !hasOldManualIndexes && !hasOldDefaultRows && !hasOldDefaultSectors) return;
+
+  state.marketSnapshotAt = defaultState.marketSnapshotAt;
+  state.marketSource = defaultState.marketSource;
+  state.marketPulse = clone(defaultState.marketPulse);
+  state.indexes = clone(defaultState.indexes);
+  state.sectors = clone(defaultState.sectors);
+  state.marketRows = clone(defaultState.marketRows);
+  state.marketNote = defaultState.marketNote;
+  state.marketQuestion = defaultState.marketQuestion;
 }
 
 async function persistState(showToast = true, skipCollect = false) {
