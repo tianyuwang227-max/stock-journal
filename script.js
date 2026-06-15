@@ -72,8 +72,8 @@ const defaultState = {
   schemaVersion: CURRENT_STATE_VERSION,
   updatedAt: "",
   quickNote: "",
-  marketNote: "",
-  marketQuestion: "",
+  marketNote: "2026-06-15 快照：A 股放量普涨，创业板指领涨。盘面主线集中在电子元件、CPO/光通信、PCB、激光设备和有色小金属；煤炭、啤酒、熟食等方向偏弱。沪深两市指数成交额约 3.03 万亿元，情绪明显升温，但高位题材需要注意追涨风险。",
+  marketQuestion: "今天上涨是业绩/订单驱动，还是资金集中抱团电子科技方向？明天重点观察 CPO、PCB、被动元件能否继续放量承接。",
   lifeJournal: "",
   activeJournalDay: 0,
   dailyJournals: ["", "", "", "", "", "", ""],
@@ -87,27 +87,33 @@ const defaultState = {
   activeDecisionId: null,
   decisionStatus: "观察",
   marketPulse: {
-    mood: "震荡观察",
-    strength: 42,
-    strongest: "半导体",
-    weakest: "医药",
-    volume: "缩量"
+    mood: "放量普涨，创业板领涨",
+    strength: 84,
+    strongest: "CPO / PCB / 被动元件",
+    weakest: "煤炭 / 啤酒 / 熟食",
+    volume: "显著放量，沪深指数成交额约 3.03 万亿"
   },
   indexes: [
-    { name: "上证指数", value: "手动记录", change: "待观察", trend: "flat" },
-    { name: "深证成指", value: "手动记录", change: "待观察", trend: "flat" },
-    { name: "创业板指", value: "手动记录", change: "待观察", trend: "flat" },
-    { name: "北证50", value: "手动记录", change: "待观察", trend: "flat" }
+    { name: "上证指数", value: "4096.47", change: "+1.61%", trend: "up" },
+    { name: "深证成指", value: "15531.11", change: "+3.79%", trend: "up" },
+    { name: "创业板指", value: "4033.53", change: "+5.30%", trend: "up" },
+    { name: "北证50", value: "1263.84", change: "+1.71%", trend: "up" }
   ],
   sectors: [
-    { name: "半导体", heat: "观察", trend: "up" },
-    { name: "新能源", heat: "等待拐点", trend: "flat" },
-    { name: "消费", heat: "防守", trend: "up" },
-    { name: "医药", heat: "分化", trend: "down" }
+    { name: "激光设备", heat: "+10.48%，德龙激光领涨", trend: "up" },
+    { name: "被动元件 / MLCC", heat: "行业 +9.63%，概念 +10.37%", trend: "up" },
+    { name: "CPO / 光通信", heat: "CPO +8.50%，光通信模块 +7.35%", trend: "up" },
+    { name: "PCB / 印制电路板", heat: "PCB +8.17%，印制电路板 +8.55%", trend: "up" },
+    { name: "有色小金属", heat: "钼 +9.99%，钨 +9.34%，白银 +7.04%", trend: "up" },
+    { name: "煤炭 / 啤酒", heat: "动力煤 -4.56%，啤酒 -3.51%", trend: "down" }
   ],
   marketRows: [
-    { stock: "宁德时代", status: "观察", change: "手动", trigger: "业绩确认 / 估值回落", risk: "价格战" },
-    { stock: "比亚迪", status: "重点观察", change: "手动", trigger: "销量与利润率改善", risk: "竞争加剧" }
+    { stock: "太辰光 300570", status: "重点观察", change: "+20.00%", trigger: "CPO、光纤、铜缆高速连接多线共振", risk: "20cm 涨停后波动放大" },
+    { stock: "逸豪新材 301176", status: "重点观察", change: "+20.00%", trigger: "PCB、元件、历史新高方向活跃", risk: "高位追涨与换手压力" },
+    { stock: "德龙激光 688170", status: "观察", change: "+20.00%", trigger: "激光设备板块涨幅居前", risk: "科创板弹性大，题材持续性待验证" },
+    { stock: "士兰微 600460", status: "观察", change: "+10.02%", trigger: "分立器件、半导体分支走强", risk: "科技线分化后承接风险" },
+    { stock: "中国巨石 600176", status: "观察", change: "+10.00%", trigger: "玻纤制造板块放量上涨", risk: "周期品价格和需求验证" },
+    { stock: "厦门钨业 600549", status: "观察", change: "+10.00%", trigger: "钨、有色小金属方向强势", risk: "资源品波动和消息驱动回落" }
   ],
   companies: [
     {
